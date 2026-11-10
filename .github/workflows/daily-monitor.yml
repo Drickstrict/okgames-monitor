@@ -65,6 +65,10 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          if [ ! -d "okgames_monitor" ] && [ -f "cli.py" ]; then
+            mkdir -p okgames_monitor
+            cp __init__.py cli.py config.py http_client.py malware.py reporting.py uptime.py okgames_monitor/
+          fi
           ARGS="--output-dir ./reports --upload-gdrive"
           if [ "${{ inputs.skip_playwright }}" = "true" ]; then
             ARGS="$ARGS --skip-playwright"
@@ -100,7 +104,6 @@ jobs:
             const severity = report.overall_severity;
             const issueLabel = 'okgames-monitor-alert';
 
-            // Ensure label exists
             try {
               await github.rest.issues.getLabel({
                 owner: context.repo.owner,
@@ -154,7 +157,6 @@ jobs:
                 });
               }
             } else if (severity === 'OK' && openIssues.data.length > 0) {
-              // Automatically resolve existing alert issue when recovered
               for (const issue of openIssues.data) {
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
